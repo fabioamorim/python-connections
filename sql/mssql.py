@@ -20,4 +20,4 @@ cnxn = get_connection_sql()
 result = execute_sql(cnxn, "SELECT * FROM user_test")
 
 for row in result:
-    print(row)
+    print(row)  
