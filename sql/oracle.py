@@ -4,30 +4,38 @@ user = 'fabio'
 password = '123'
 dns_tns = cx_Oracle.makedsn('localhost', '1521', service_name='xe')
 
-#Create connection
-def get_connection_sql():
+#Create conn
+def get_conn_sql():
 
-    connection = cx_Oracle.connect(f'{user}/{password}@{dns_tns}')
-    return connection
+    conn = None
+
+    try:
+        conn = cx_Oracle.connect(f'{user}/{password}@{dns_tns}')
+    except cx_Oracle.Error as err:
+        print(f"{err}")
+
+    return conn
 
 # Execute query
-def execute_sql(connection, sql, commit=False):
-
-    cursor = connection.cursor()
-    cursor.execute(sql)
+def execute_sql(conn, sql, commit=False):
 
     result = None
+    cursor = conn.cursor()
 
-    if commit:
+    try:
+        cursor.execute(sql)
 
-        connection.commit()
+        if commit:
+            conn.commit()
+        else: 
+            result = cursor.fetchall()
 
-    else: 
-    
-        result = cursor.fetchall()
+    except cx_Oracle.Error as err:
+        print(f"{err}\nSQL: {sql}")        
+           
 
     cursor.close()
-    connection.close()    
+    conn.close()    
 
     return result
 
@@ -39,54 +47,58 @@ def create_table():
                 login VARCHAR2(60) NOT NULL
             )"""
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    execute_sql(connection, sql, True)
+    execute_sql(conn, sql, True)
 
 # Drop table
 def drop_table():
 
     sql = "DROP TABLE user_login_teste"
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    execute_sql(connection, sql, True)
+    execute_sql(conn, sql, True)
 
 # Select  
-def select_table():
+def select_table(sql):
 
-    sql = "SELECT * FROM user_login"
+    result = None
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    result = execute_sql(connection, sql)
-        
-    for row in result:
-        print(row)
+    if(conn is not None):
+        result = execute_sql(conn, sql)
+
+        if(result is not None):
+            for row in result:
+                print(row)
 
 # Insert row
 def insert_row():
 
     sql = "INSERT INTO user_login VALUES(5, 'boo')"
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    execute_sql(connection, sql, True)
+    execute_sql(conn, sql, True)
 
 # Delete row
 def delete_row():
 
     sql = "DELETE FROM user_login WHERE id = 5"
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    execute_sql(connection, sql, True)
+    execute_sql(conn, sql, True)
 
 # Update row
 def update_row():
 
     sql = "UPDATE user_login SET login = 'user1' WHERE id = 1"
 
-    connection = get_connection_sql()
+    conn = get_conn_sql()
 
-    execute_sql(connection, sql, True)
+    execute_sql(conn, sql, True)
+
+select_table("SELECT * FROM user_login")
